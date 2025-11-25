@@ -40,7 +40,7 @@ load_dotenv()
 
 # setting and calling variables from our environment that houses the API keys
 api_key = os.getenv('MAILCHIMP_API_KEY')
-server_prefix = os.getenv('MAILCHIMP_SERVER_PREFIX')
+server_prefix = 'bug' #os.getenv('MAILCHIMP_SERVER_PREFIX')
 
 # setting a start date for our events data can go back x amoubnt of days starting midnight
 days_back = 90
