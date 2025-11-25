@@ -8,39 +8,39 @@ from mailchimp_marketing import Client
 from mailchimp_marketing.api_client import ApiClientError
 
 # assigning variables for directories
-campaign_log_dir = "extract_logs"
-reports_log_dir = "reports_logs"
+log_dir = "extract_logs"
 
 campaign_dir = "campaign_data"
 reports_dir = "reports_data"
+lists_dir = "lists_data"
 
 # making the directories
-os.makedirs(campaign_log_dir, exist_ok=True)
-os.makedirs(reports_log_dir, exist_ok=True)
+os.makedirs(log_dir, exist_ok=True)
 
 os.makedirs(campaign_dir, exist_ok=True)
 os.makedirs(reports_dir, exist_ok=True)
+os.makedirs(lists_dir, exist_ok=True)
 
 # log filename for when the script is run
-campaign_log_filename = os.path.join(campaign_log_dir, f"mailchimp_campaign_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+log_filename = os.path.join(log_dir, f"mailchimp_campaign_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 
 # configuration of the logs
 logging.basicConfig(
     filemode = "a", # append the data when script is run and not overwrite
     level=logging.INFO, # record any message that is INFO, WARNING, ERROR, or CRITICAL
     format='%(asctime)s - %(levelname)s - %(message)s',
-    filename=campaign_log_filename
+    filename=log_filename
 )
 
 # variable for writing out logs
-campaign_logger = logging.getLogger()
+logger = logging.getLogger()
 
 # loading the environment that contains our API Keys
 load_dotenv()
 
 # setting and calling variables from our environment that houses the API keys
 api_key = os.getenv('MAILCHIMP_API_KEY')
-server_prefix = os.getenv('MAILCHIMP_SERVER_PREFIX')
+server_prefix = 'bug' #os.getenv('MAILCHIMP_SERVER_PREFIX')
 
 # setting a start date for our events data can go back x amoubnt of days starting midnight
 days_back = 90
@@ -76,29 +76,73 @@ try: # check response to mailchimp
             )
 
             all_campaigns = campaigns['campaigns']
-            campaign_logger.info("Campaign data retrieved successfully")
-            campaign_logger.info(f"There were {len(all_campaigns)} campaigns in the last {days_back} days")
-            print("Data retrieved successfully")
+            logger.info("Campaign data retrieved successfully")
+            logger.info(f"There were {len(all_campaigns)} campaigns in the last {days_back} days")
+            print("Campaign data retrieved successfully")
             print(f"There were {len(all_campaigns)} campaigns in the last {days_back} days")
 
-            filename = f'{campaign_dir}/mailchimp_campaigns_{timestamp}.json'
+            campaign_filename = f'{campaign_dir}/mailchimp_campaigns_{timestamp}.json'
 
-            with open(filename, 'w', encoding='utf-8') as f:
+            with open(campaign_filename, 'w', encoding='utf-8') as f:
                 json.dump(all_campaigns, f, indent=2, ensure_ascii=False)
 
-            logger.info(f"Successfully saved {len(all_campaigns)} campaigns to {filename}")
-            print(f"Campaigns saved to: {filename}")
+            logger.info(f"Successfully saved {len(all_campaigns)} campaigns to {campaign_filename}")
+            print(f"Campaigns saved to: {campaign_filename}")
 
         except Exception as e:
             print(f"Error fetching campaigns: {e}")
 
+# ---------------------------------------------------------------------------------------------------------------------------------
+
+        # reports data    
         try:
-            reports = mailchimp.reports(
+            reports = mailchimp.reports.get_all_campaign_reports(
                 count = 1000,
                 since_send_time = start_date
             )
 
+            all_reports = reports['reports']
+            logger.info("Reports data retrieved successfully")
+            logger.info(f"There were {len(all_reports)} reports in the last {days_back} days")
+            print("Reports data retrieved successfully")
+            print(f"There were {len(all_reports)} reports in the last {days_back} days")
 
+            reports_filename = f'{reports_dir}/mailchimp_reports_{timestamp}.json'
+
+            with open(reports_filename, 'w', encoding='utf-8') as f:
+                json.dump(all_reports, f, indent=2, ensure_ascii=False)
+
+            logger.info(f"Successfully saved {len(all_reports)} reports to {reports_filename}")
+            print(f"Reports saved to: {reports_filename}")
+
+        except Exception as e:
+            print(f"Error fetching reports: {e}")
+
+# ---------------------------------------------------------------------------------------------------------------------------------
+
+        # lists data
+        try:
+            lists = mailchimp.lists.get_all_lists(
+                count = 1000,
+                since_campaign_last_sent = start_date
+            )
+
+            all_lists = lists['lists']
+            logger.info("Lists data retrieved successfully")
+            logger.info(f"There were {len(all_lists)} lists in the last {days_back} days")
+            print("Lists data retrieved successfully")
+            print(f"There were {len(all_lists)} lists in the last {days_back} days")
+
+            lists_filename = f'{lists_dir}/mailchimp_lists_{timestamp}.json'
+
+            with open(lists_filename, 'w', encoding='utf-8') as f:
+                json.dump(all_lists, f, indent=2, ensure_ascii=False)
+
+            logger.info(f"Successfully saved {len(all_lists)} lists to {lists_filename}")
+            print(f"Lists saved to: {lists_filename}")
+
+        except Exception as e:
+            print(f"Error fetching lists: {e}")
     else:
         logger.error(f"API health check failed. Response: {response}")
         print(f"API health check failed. Response: {response}")  
