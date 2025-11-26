@@ -12,14 +12,12 @@ log_dir = "extract_logs"
 
 campaign_dir = "campaign_data"
 reports_dir = "reports_data"
-lists_dir = "lists_data"
 
 # making the directories
 os.makedirs(log_dir, exist_ok=True)
 
 os.makedirs(campaign_dir, exist_ok=True)
 os.makedirs(reports_dir, exist_ok=True)
-os.makedirs(lists_dir, exist_ok=True)
 
 # log filename for when the script is run
 log_filename = os.path.join(log_dir, f"mailchimp_campaign_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
@@ -117,32 +115,6 @@ try: # check response to mailchimp
 
         except Exception as e:
             print(f"Error fetching reports: {e}")
-
-# ---------------------------------------------------------------------------------------------------------------------------------
-
-        # lists data
-        try:
-            lists = mailchimp.lists.get_all_lists(
-                count = 1000,
-                since_campaign_last_sent = start_date
-            )
-
-            all_lists = lists['lists']
-            logger.info("Lists data retrieved successfully")
-            logger.info(f"There were {len(all_lists)} lists in the last {days_back} days")
-            print("Lists data retrieved successfully")
-            print(f"There were {len(all_lists)} lists in the last {days_back} days")
-
-            lists_filename = f'{lists_dir}/mailchimp_lists_{timestamp}.json'
-
-            with open(lists_filename, 'w', encoding='utf-8') as f:
-                json.dump(all_lists, f, indent=2, ensure_ascii=False)
-
-            logger.info(f"Successfully saved {len(all_lists)} lists to {lists_filename}")
-            print(f"Lists saved to: {lists_filename}")
-
-        except Exception as e:
-            print(f"Error fetching lists: {e}")
     else:
         logger.error(f"API health check failed. Response: {response}")
         print(f"API health check failed. Response: {response}")  
