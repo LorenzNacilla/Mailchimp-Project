@@ -84,9 +84,9 @@ try: # check response to mailchimp
                 c_id = campaign['id']
                 c_title = campaign['settings']['title']
 
-                reports = mailchimp.reports.get_campaign_click_details(f"{c_id}")
-
                 logger.info(f"ID: {c_id} | Title: {c_title}")
+
+                reports = mailchimp.reports.get_campaign_click_details(f"{c_id}")
 
             campaign_filename = f'{campaign_dir}/mailchimp_campaigns_{timestamp}.json'
 
