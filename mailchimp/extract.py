@@ -84,6 +84,8 @@ try: # check response to mailchimp
                 c_id = campaign['id']
                 c_title = campaign['settings']['title']
 
+                reports = mailchimp.reports.get_campaign_click_details(f"{c_id}")
+
                 logger.info(f"ID: {c_id} | Title: {c_title}")
 
             campaign_filename = f'{campaign_dir}/mailchimp_campaigns_{timestamp}.json'
@@ -98,30 +100,30 @@ try: # check response to mailchimp
             print(f"Error fetching campaigns: {e}")
 
 # ---------------------------------------------------------------------------------------------------------------------------------
+        # reports data
 
-        # reports data    
-        try:
-            reports = mailchimp.reports.get_all_campaign_reports(
-                count = 1000,
-                since_send_time = start_date
-            )
+        # try:
+        #     reports = mailchimp.reports.get_all_campaign_reports(
+        #         count = 1000,
+        #         since_send_time = start_date
+        #     )
 
-            all_reports = reports['reports']
-            logger.info("Reports data retrieved successfully")
-            logger.info(f"There were {len(all_reports)} reports in the last {days_back} days")
-            print("Reports data retrieved successfully")
-            print(f"There were {len(all_reports)} reports in the last {days_back} days")
+        #     all_reports = reports['reports']
+        #     logger.info("Reports data retrieved successfully")
+        #     logger.info(f"There were {len(all_reports)} reports in the last {days_back} days")
+        #     print("Reports data retrieved successfully")
+        #     print(f"There were {len(all_reports)} reports in the last {days_back} days")
 
-            reports_filename = f'{reports_dir}/mailchimp_reports_{timestamp}.json'
+        #     reports_filename = f'{reports_dir}/mailchimp_reports_{timestamp}.json'
 
-            with open(reports_filename, 'w', encoding='utf-8') as f:
-                json.dump(all_reports, f, indent=2, ensure_ascii=False)
+        #     with open(reports_filename, 'w', encoding='utf-8') as f:
+        #         json.dump(all_reports, f, indent=2, ensure_ascii=False)
 
-            logger.info(f"Successfully saved {len(all_reports)} reports to {reports_filename}")
-            print(f"Reports saved to: {reports_filename}")
+        #     logger.info(f"Successfully saved {len(all_reports)} reports to {reports_filename}")
+        #     print(f"Reports saved to: {reports_filename}")
 
-        except Exception as e:
-            print(f"Error fetching reports: {e}")
+        # except Exception as e:
+        #    print(f"Error fetching reports: {e}")
     else:
         logger.error(f"API health check failed. Response: {response}")
         print(f"API health check failed. Response: {response}")  
