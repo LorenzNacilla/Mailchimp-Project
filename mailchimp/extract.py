@@ -38,7 +38,7 @@ load_dotenv()
 
 # setting and calling variables from our environment that houses the API keys
 api_key = os.getenv('MAILCHIMP_API_KEY')
-server_prefix = 'bug' #os.getenv('MAILCHIMP_SERVER_PREFIX')
+server_prefix = os.getenv('MAILCHIMP_SERVER_PREFIX')
 
 # setting a start date for our events data can go back x amoubnt of days starting midnight
 days_back = 90
@@ -74,10 +74,17 @@ try: # check response to mailchimp
             )
 
             all_campaigns = campaigns['campaigns']
+
             logger.info("Campaign data retrieved successfully")
             logger.info(f"There were {len(all_campaigns)} campaigns in the last {days_back} days")
             print("Campaign data retrieved successfully")
             print(f"There were {len(all_campaigns)} campaigns in the last {days_back} days")
+
+            for campaign in all_campaigns:
+                c_id = campaign['id']
+                c_title = campaign['settings']['title']
+
+                logger.info(f"ID: {c_id} | Title: {c_title}")
 
             campaign_filename = f'{campaign_dir}/mailchimp_campaigns_{timestamp}.json'
 
