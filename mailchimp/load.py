@@ -21,7 +21,7 @@ logs_dir = "s3_upload_logs"
 os.makedirs(logs_dir, exist_ok = True)
 
 # timestamp variable
-timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S') #_%H%M%S
 
 # log configuration
 log_filename = os.path.join(logs_dir, f"mailchimp_s3_upload_{timestamp}.log")
