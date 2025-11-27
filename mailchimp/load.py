@@ -46,7 +46,8 @@ s3_client = boto3.client(
 # Directory name: s3 bucket folder name
 upload_mapping = {
     "campaign_data": "campaigns",
-    "click_reports_data": "click-reports"
+    "click_reports_data": "click-reports",
+    "members_details_data": "members"
 }
 
 def upload_directory(local_dir, s3_folder):

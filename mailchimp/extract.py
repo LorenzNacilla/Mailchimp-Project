@@ -13,12 +13,14 @@ log_dir = "extract_logs"
 
 campaign_dir = "campaign_data"
 click_reports_dir = "click_reports_data"
+members_details_dir = "members_details_data"
 
 # making the directories
 os.makedirs(log_dir, exist_ok=True)
 
 os.makedirs(campaign_dir, exist_ok=True)
 os.makedirs(click_reports_dir, exist_ok=True)
+os.makedirs(members_details_dir, exist_ok=True)
 
 # log filename for when the script is run
 log_filename = os.path.join(log_dir, f"mailchimp_campaign_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
@@ -76,7 +78,7 @@ try: # check response to mailchimp
                 sort_dir="DESC"
             )
 
-            all_campaigns = campaigns['campaigns'] # 
+            all_campaigns = campaigns['campaigns'] # gets the entire campaigns list
 
             logger.info("Campaign data retrieved successfully")
             logger.info(f"There were {len(all_campaigns)} campaigns in the last {days_back} days")
@@ -98,35 +100,68 @@ try: # check response to mailchimp
             print(f"Campaigns saved to: {campaign_filename}")
 
 # ------------------------------------------------------------------------------------------------------------------------------
-            # click details
-            print(f"Getting click details for {len(all_campaigns)} campaigns in the last {days_back} days...")
+            # click details and members
+            print(f"Getting click details and members for {len(all_campaigns)} campaigns in the last {days_back} days...")
 
+            # empty dataframe
             all_clicks_data = []
+            all_members_data = []
 
             for i, campaign in enumerate(all_campaigns):
                 c_id = campaign['id']
 
                 try:
                     click_report = mailchimp.reports.get_campaign_click_details(c_id, count=1000)
-
                     click_details = click_report.get('urls_clicked', [])
 
                     if click_details:
                         all_clicks_data.extend(click_details)
 
+                        for link in click_details:
+                            link_id = link['id']
+                            unique_clicks = link['unique_clicks']
+
+                            if unique_clicks > 0:
+                                try:
+                                    offset = 0
+                                    while True:
+                                        member_details = mailchimp.reports.get_subscribers_info(c_id, link_id, count = 1000, offset = offset)
+                                        members = member_details.get('members', [])
+
+                                        if not members:
+                                            break
+
+                                        all_members_data.extend(members)
+
+                                        if len(members) < 1000:
+                                            break
+                                        offset += 1000
+                                        time.sleep(0.1)
+                                    
+                                except Exception as e:
+                                    logger.warning(f"Error getting members for link {link_id}: {e}")
+
+                    # help rate limit safety               
                     time.sleep(0.2)
                 
                 except Exception as e:
                     logger.warning(f"Error processing {c_id}: {e}")
                     continue
 
-                click_reports_filename = f"{click_reports_dir}/mailchimp_click_reports_{timestamp}.json"
+            # save click details
+            click_reports_filename = f"{click_reports_dir}/mailchimp_click_reports_{timestamp}.json"
 
-                with open(click_reports_filename, 'w', encoding='utf-8') as f:
-                    json.dump(all_clicks_data, f, indent=2, ensure_ascii=False)
+            with open(click_reports_filename, 'w', encoding='utf-8') as f:
+                json.dump(all_clicks_data, f, indent=2, ensure_ascii=False)
 
-                logger.info(f"Successfully saved {len(all_clicks_data)} click details")
-                print(f"Click details saved to {click_reports_filename}")
+            logger.info(f"Successfully saved {len(all_clicks_data)} click details")
+            print(f"Click details saved to {click_reports_filename}")
+
+            # save members details
+            members_details_filename = f"{members_details_dir}/mailchimp_members_details_{timestamp}.json"
+
+            with open(members_details_filename, 'w', encoding='utf-8') as f:
+                json.dump(all_members_data, f, indent=2, ensure_ascii=False)
 
         except Exception as e:
             print(f"Error in processing loop: {e}")
